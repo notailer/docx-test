@@ -47,7 +47,7 @@ jobs:
         run: |
           echo "TAG=v${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
 
-      - name: Debug: show resolved tag and list files
+      - name: Debug show resolved tag and list files
         run: |
           echo "Resolved TAG: ${{ steps.tag.outputs.TAG }}"
           echo "Workspace files:"
