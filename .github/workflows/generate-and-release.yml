@@ -1,6 +1,6 @@
 name: Generate DOCX and Create Release
 
-# 권한: release/tag 생성, assets 업로드 등을 위해 contents: write 필요
+# Release 생성/asset 업로드/태그 푸시를 위해 contents: write 필요
 permissions:
   contents: write
 
@@ -13,15 +13,15 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     env:
-      # Optional: set this secret name to a PAT if GITHUB_TOKEN cannot push in your org
-      PUSH_TOKEN_SECRET: "RELEASE_TOKEN"
+      # (선택) 조직에서 GITHUB_TOKEN으로 push가 제한되면 REPO_PAT라는 이름으로 PAT를 repo Secrets에 넣으세요.
+      REPO_PAT_SECRET_NAME: "RELEASE_TOKEN"
 
     steps:
-      - name: Checkout repository (fetch all history + tags)
+      - name: Checkout repository (full history & tags)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # persist-credentials true (default) so git push uses GITHUB_TOKEN by default
+          persist-credentials: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -35,29 +35,40 @@ jobs:
 
       - name: Generate DOCX
         run: |
+          # generate_ultimate_docx.mjs 가 repo 루트에 있어야 함
           node generate_ultimate_docx.mjs
         env:
           CI: true
 
-      - name: Determine tag
+      - name: Determine tag (unique)
         id: tag
         run: |
+          # Use run id which is unique per workflow run
           echo "TAG=v${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
 
-      - name: Create and push tag (if not exists)
+      - name: Show tag (debug)
+        run: |
+          echo "Resolved TAG = ${{ steps.tag.outputs.TAG }}"
+
+      - name: Create and push tag if not exists
         env:
           TAG: ${{ steps.tag.outputs.TAG }}
         run: |
-          echo "Using tag: $TAG"
-          # check remote tags
-          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
-            echo "Tag already exists on remote: $TAG"
+          echo "Creating/pushing tag: $TAG"
+          # exit non-zero on failure
+          set -e
+          # ensure git origin is present
+          git remote -v
+          # check if tag already exists remotely
+          if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+            echo "Tag ${TAG} already exists on remote; skipping tag creation."
           else
             git config user.name "${{ github.actor }} (actions)"
             git config user.email "${{ github.actor }}@users.noreply.github.com"
-            git tag -a "$TAG" -m "Generated tag $TAG by workflow"
-            # push using configured origin credentials (actions/checkout persists credentials)
-            git push origin refs/tags/$TAG
+            git tag -a "${TAG}" -m "Generated tag ${TAG} by workflow"
+            # Try pushing with default credentials (persisted by actions/checkout)
+            echo "Pushing tag to origin..."
+            git push origin "refs/tags/${TAG}"
           fi
 
       - name: Create Release (skip if exists)
