@@ -91,7 +91,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
 
-      - name: Debug: show create_release outputs
+      - name: Debug show create_release outputs
         run: |
           echo "create_release outputs:"
           echo "upload_url: ${{ steps.create_release.outputs.upload_url || 'NONE' }}"
