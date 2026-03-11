@@ -1,3 +1,9 @@
+permissions:
+  contents: write     # release (upload assets) / create release need write access to repo contents
+  packages: write     # if uploading packages
+  pull-requests: write
+  
+
 name: Generate DOCX and Create Release
 on:
   workflow_dispatch:
