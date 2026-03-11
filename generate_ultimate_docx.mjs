@@ -1,10 +1,10 @@
-// generate_ultimate_docx.mjs
 import fs from "fs";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
 
-const OUT = "ultimate_docx_test_file.docx";
+const OUTPUT = "ultimate_docx_test_file.docx";
 
 async function build() {
+
   const doc = new Document({
     creator: "AutoGenerator",
     title: "Ultimate DOCX Feature Test",
@@ -16,21 +16,30 @@ async function build() {
             heading: HeadingLevel.TITLE,
             alignment: AlignmentType.CENTER,
           }),
-          new Paragraph({ text: "Generated automatically by GitHub Actions" }),
-          new Paragraph({ text: "" }),
+
+          new Paragraph({
+            text: "Generated automatically by GitHub Actions",
+          }),
+
+          new Paragraph({
+            text: "",
+          }),
         ],
       },
     ],
   });
 
-  // add many sections
+  // 여러 섹션 생성
   for (let i = 1; i <= 30; i++) {
+
     doc.addSection({
       children: [
+
         new Paragraph({
           text: `Section ${i}: Feature showcase`,
           heading: HeadingLevel.HEADING_2,
         }),
+
         new Paragraph({
           children: [
             new TextRun({ text: "Bold", bold: true }),
@@ -40,17 +49,24 @@ async function build() {
           ],
           alignment: AlignmentType.JUSTIFIED,
         }),
-        new Paragraph({ text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(6) }),
+
+        new Paragraph({
+          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(6),
+        }),
+
       ],
     });
+
   }
 
   const buffer = await Packer.toBuffer(doc);
-  fs.writeFileSync(OUT, buffer);
-  console.log("Saved:", OUT, "size:", buffer.length);
+
+  fs.writeFileSync(OUTPUT, buffer);
+
+  console.log("Saved:", OUTPUT, "size:", buffer.length);
 }
 
-build().catch((e) => {
-  console.error(e);
+build().catch((error) => {
+  console.error(error);
   process.exit(1);
 });
